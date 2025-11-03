@@ -19,7 +19,7 @@ app.get(
 );
 
 app.get(
-    "/languages.:id/exercises",
+    "/languages/:id/exercises",
     async (c) => {
         const id = c.req.param("id");
 
