@@ -1,6 +1,6 @@
 CREATE TABLE languages (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
+    id SERIAL PRIMARY KEY, -- noqa: RF04
+    name VARCHAR(255) NOT NULL UNIQUE -- noqa: RF04
 );
 
 CREATE TABLE exercises (
