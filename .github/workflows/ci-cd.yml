@@ -26,7 +26,7 @@ jobs:
         run:  pip install sqlfluff
     
       - name: Lint SQL migrations
-        run:  sqlfluff lint database-migrations/
+        run:  sqlfluff lint database-migrations/ --postgres
     
   security-scan:
     runs-on: ubuntu-latest
