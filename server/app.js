@@ -36,6 +36,8 @@ const cacheMiddleware = async (c, next) => {
   }
 };
 
+// Step 1
+
 app.get(
     "/api/languages", cacheMiddleware,
     async (c) => {
@@ -58,6 +60,8 @@ app.get(
         return c.json(result);
     }
 );
+
+// Step 2
 
 app.post(
   "/api/exercises/:id/submissions",
