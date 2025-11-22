@@ -40,7 +40,7 @@ const cacheMiddleware = async (c, next) => {
 
 app.get(
     "/api/languages", cacheMiddleware,
-    async (c) => {
+    async function getLanguages(c) {
         try {
             const result = await sql`SELECT * FROM languages`;
             return c.json(result);
