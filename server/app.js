@@ -53,7 +53,7 @@ app.get(
 
 app.get(
     "/api/languages/:id/exercises", cacheMiddleware,
-    async (c) => {
+    async function getExercise(c) {
         const language = c.req.param("id");
         const result = await sql`SELECT id, title, description FROM exercises WHERE exercises.language_id = ${language}`;
 
@@ -65,7 +65,7 @@ app.get(
 
 app.post(
   "/api/exercises/:id/submissions",
-  async (c) => {
+  async function postSubmission(c) {
     try {
       const id = c.req.param("id");
       const body = await c.req.json();

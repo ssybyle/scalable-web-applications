@@ -25,7 +25,7 @@ app.use("/*", logger());
 
 app.get(
   "/api/status",
-  async(c) => {
+  async function getSubmissionStatus(c) {
     try {
       const queueSize = await redis.llen("submissions");
       return c.json({"queue_size":queueSize, "consume_enabled": consumeEnabled});
@@ -38,7 +38,7 @@ app.get(
 
 app.post(
   "/api/consume/enable",
-  async(c) => {
+  async function enableConsumer(c) {
     consumeEnabled = true;
     return c.json({"consume_enabled": consumeEnabled})
   }
@@ -46,7 +46,7 @@ app.post(
 
 app.post(
   "/api/consume/disable",
-  async(c) => {
+  async function disableConsumer(c) {
     consumeEnabled = false;
     return c.json({"consume_enabled": consumeEnabled})
   }
