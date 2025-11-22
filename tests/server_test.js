@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
-import app from "../app.js";
+import app from "../server/app.js";
 
 // -------------------- GET /api/languages --------------------
 Deno.test("GET /api/languages", async () => {
