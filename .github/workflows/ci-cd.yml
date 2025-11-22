@@ -1,0 +1,67 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    - 'main'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 
+        
+      # ---------- JavaScript Lint (Deno) ----------
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with: 
+          deno-version: v1.x 
+          
+      - name: Lint JavaScript (Deno)
+        run: deno lint 
+          
+      # ---------- SQL Lint (SQLFluff) ---------- 
+      - name: Install SQLFluff 
+        run:  pip install sqlfluff
+    
+      - name: Lint SQL migrations
+        run:  sqlfluff lint database-migrations/
+    
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # ---------- Dependency Audit (Deno) ----------
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with: 
+          deno-version: v1.x
+      
+      - name: Dependency Security Audit (Deno)
+        run: deno task audit || true
+      
+      # ---------- Static Code Security Analysis ----------
+      - name: Install Semgrep
+        run: pip install semgrep
+      
+      - name: Run Semgrep scan
+        run: semgrep --config=auto .
+  
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint, security-scan]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ---------- Server tests ----------
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with: 
+          deno-version: v1.x 
+          
+      - name: Run server tests
+        run: deno test --fail-fast --allow-env tests/server_test.js
