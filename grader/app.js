@@ -38,7 +38,7 @@ app.get(
 
 app.post(
   "/api/consume/enable",
-  async function enableConsumer(c) {
+  function enableConsumer(c) {
     consumeEnabled = true;
     return c.json({"consume_enabled": consumeEnabled})
   }
@@ -46,7 +46,7 @@ app.post(
 
 app.post(
   "/api/consume/disable",
-  async function disableConsumer(c) {
+  function disableConsumer(c) {
     consumeEnabled = false;
     return c.json({"consume_enabled": consumeEnabled})
   }
