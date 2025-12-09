@@ -98,10 +98,10 @@ app.get(
     const exercise = c.req.param("id");
     const result = await sql`SELECT id, title, description FROM exercises WHERE exercises.id = ${exercise}`;
     
-    if (!result) {
-      return c.json({ error: "" }, 404);
+    if (result.length === 0) {
+      return c.text("", 404);
     }
-    return c.json(result);
+    return c.json(result[0]);
   }
 );
 
@@ -111,10 +111,10 @@ app.get(
     const exercise = c.req.param("id");
     const result = await sql`SELECT grading_status, grade FROM exercise_submissions WHERE exercise_submissions.exercise_id = ${exercise}`;
     
-    if (!result) {
-      return c.json({ error: "" }, 404);
+    if (result === 0) {
+      return c.text("", 404);
     }
-    return c.json(result);
+    return c.json(result[0]);
   }
 );
 
