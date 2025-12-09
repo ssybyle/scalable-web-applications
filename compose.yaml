@@ -21,7 +21,7 @@ services:
       postgres
       -c shared_preload_libraries=auto_explain,pg_stat_statements
       -c auto_explain.log_min_duration=10
-  
+
   database-migrations:
     image: flyway/flyway:10
     env_file:
@@ -31,3 +31,13 @@ services:
     volumes:
       - ./database-migrations:/flyway/sql
     command: -connectRetries=60 -baselineOnMigrate=true migrate
+
+  client:
+    build: client
+    restart: unless-stopped
+    volumes:
+      - ./client:/app
+    ports:
+      - 4321:4321
+    depends_on:
+      - server
