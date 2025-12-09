@@ -4,9 +4,11 @@
   export let exerciseId;
 
   let answer = "";
-  let characters = 0;
-  let ifs = 0;
   let exercise = { title: "", description: "" };
+  let submissionId = null;
+  let gradingStatus = "";
+  let grade = null;
+  let pollingInterval = null;
 
   const getExoInfo = async () => {
     const response = await fetch(`/api/exercises/${exerciseId}`);
@@ -18,20 +20,61 @@
     }
   };
 
-  function updateTextarea() {
-    characters = answer.length;
-    ifs = (answer.match(/if/g) || []).length;
-  }
+  const submitExercise = async () => {
+    const response = await fetch(`/api/exercises/${exerciseId}/submissions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        source_code: answer
+      })
+    });
+
+    if (!response.ok) {
+      console.error("Failed to submit exercise:", response.status);
+      return;
+    }
+    const data = await response.json();
+    submissionId = data.id;
+    gradingStatus = "queued";
+
+    startPolling();
+  };
+
+  const startPolling = () => {
+    if (pollingInterval) clearInterval(pollingInterval);
+
+    pollingInterval = setInterval(async () => {
+      const res = await fetch(`/api/submissions/${submissionId}/status`);
+      if (!res.ok) return;
+
+      const statusData = await res.json();
+      gradingStatus = statusData.grading_status;
+      grade = statusData.grade;
+
+      if (gradingStatus === "graded") {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    }, 500);
+  };
 
   onMount(() => {
     getExoInfo();
   });
 </script>
 
-<h2>{exercise.title}</h2>
+<h1>{exercise.title}</h1>
 <p>{exercise.description}</p>
 
 <textarea bind:value={answer}></textarea>
-<button on:click={updateTextarea}>Submit</button>
-<p>Characters: {characters}</p>
-<p>ifs: {ifs}</p>
+<button onclick={submitExercise}>Submit</button>
+
+{#if gradingStatus}
+  <p>Grading status: {gradingStatus}</p>
+{/if}
+
+{#if grade !== null}
+  <p>Grade: {grade}</p>
+{/if}
