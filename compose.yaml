@@ -4,12 +4,15 @@ services:
     restart: unless-stopped
     volumes:
       - ./server:/app
-    ports:
-      - 8001:8001
     env_file:
       - project.env
     depends_on:
       - database
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server-router.entrypoints=web"
+      - "traefik.http.routers.server-router.rule=PathPrefix(`/api`)"
+      - "traefik.http.services.server-service.loadbalancer.server.port=8000"
 
   database:
     container_name: dab_overarching_postgres
@@ -32,12 +35,48 @@ services:
       - ./database-migrations:/flyway/sql
     command: -connectRetries=60 -baselineOnMigrate=true migrate
 
+  grader:
+    build: grader
+    restart: unless-stopped
+    volumes:
+      - ./grader:/app
+    env_file:
+      - project.env
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.grader-api.rule=PathPrefix(`/grader-api`)"
+    - "traefik.http.routers.grader-api.middlewares=grader-api-replacepath"
+    - "traefik.http.middlewares.grader-api-replacepath.replacePathRegex.regex=^/grader-api(.*)"
+    - "traefik.http.middlewares.grader-api-replacepath.replacePathRegex.replacement=/api$$1"
+    - "traefik.http.services.grader-api.loadbalancer.server.port=8000"
+    depends_on:
+      - database
+
   client:
     build: client
     restart: unless-stopped
     volumes:
       - ./client:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client-router.entrypoints=web"
+      - "traefik.http.routers.client-router.rule=PathPrefix(`/`)"
+      - "traefik.http.services.client-service.loadbalancer.server.port=4321"
+  
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:8000"
     ports:
-      - 4321:4321
-    depends_on:
-      - server
+      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  
+  redis:
+    image: redis:7.4.2
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf

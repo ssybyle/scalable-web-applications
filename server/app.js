@@ -55,9 +55,13 @@ app.get(
     "/api/languages/:id/exercises", cacheMiddleware,
     async function getExercise(c) {
         const language = c.req.param("id");
-        const result = await sql`SELECT id, title, description FROM exercises WHERE exercises.language_id = ${language}`;
 
-        return c.json(result);
+        try {
+          const result = await sql`SELECT id, title, description FROM exercises WHERE exercises.language_id = ${language}`;
+          return c.json(result);
+        } catch (err) {
+          return c.text(" Exercise not found", 404);
+        }
     }
 );
 
@@ -93,28 +97,34 @@ app.post(
 // Step 5
 
 app.get(
-  "/api/exercises/:id", cacheMiddleware,
+  "/api/exercises/:id",
   async function getExerciseById(c) {
     const exercise = c.req.param("id");
     const result = await sql`SELECT id, title, description FROM exercises WHERE exercises.id = ${exercise}`;
     
     if (result.length === 0) {
       return c.text("", 404);
+    } else {
+      return c.json(result[0]);
     }
-    return c.json(result[0]);
   }
 );
 
 app.get(
   "/api/submissions/:id/status",
   async function getStatus(c) {
-    const exercise = c.req.param("id");
-    const result = await sql`SELECT grading_status, grade FROM exercise_submissions WHERE exercise_submissions.exercise_id = ${exercise}`;
-    
-    if (result === 0) {
-      return c.text("", 404);
+    const submission = c.req.param("id");
+    try {
+      const result = await sql`SELECT grading_status, grade FROM exercise_submissions WHERE exercise_submissions.id = ${submission}`;
+      
+      if (result.length === 0) {
+        return c.text("", 404);
+      } else {
+        return c.json(result[0]);
+      }
+    } catch (err) {
+      return c.json({ error: "Internal Server Error" }, 500);
     }
-    return c.json(result[0]);
   }
 );
 

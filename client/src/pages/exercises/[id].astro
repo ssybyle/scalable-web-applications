@@ -6,7 +6,6 @@ export const prerender = false;
 const { id } = Astro.params;
 ---
 
-<Layout title="Items">
-  <p>Exercise {id}</p>
-  <Exercise client:idle/>
+<Layout title={`Exercise ${id}`}>
+  <Exercise client:idle exerciseId={id}/>
 </Layout>
