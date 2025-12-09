@@ -90,4 +90,32 @@ app.post(
   }
 );
 
+// Step 5
+
+app.get(
+  "/api/exercises/:id", cacheMiddleware,
+  async function getExerciseById(c) {
+    const exercise = c.req.param("id");
+    const result = await sql`SELECT id, title, description FROM exercises WHERE exercises.id = ${exercise}`;
+    
+    if (!result) {
+      return c.json({ error: "" }, 404);
+    }
+    return c.json(result);
+  }
+);
+
+app.get(
+  "/api/submissions/:id/status",
+  async function getStatus(c) {
+    const exercise = c.req.param("id");
+    const result = await sql`SELECT grading_status, grade FROM exercise_submissions WHERE exercise_submissions.exercise_id = ${exercise}`;
+    
+    if (!result) {
+      return c.json({ error: "" }, 404);
+    }
+    return c.json(result);
+  }
+);
+
 export default app;
