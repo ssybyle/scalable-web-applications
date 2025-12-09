@@ -7,5 +7,5 @@ const { id } = Astro.params;
 ---
 
 <Layout title={`Exercise ${id}`}>
-  <Exercise client:idle exerciseId={id}/>
+  <Exercise client:load exerciseId={id}/>
 </Layout>

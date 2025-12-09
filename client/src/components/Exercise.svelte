@@ -1,13 +1,15 @@
 <script>
   import { onMount } from "svelte";
+  import { useUserState } from "../states/userState.svelte.js";
+  const userState = useUserState();
 
-  export let exerciseId;
+  const { exerciseId } = $props();
 
-  let answer = "";
-  let exercise = { title: "", description: "" };
-  let submissionId = null;
-  let gradingStatus = "";
-  let grade = null;
+  let answer = $state("");
+  let exercise = $state({ title: `Exercise-${exerciseId}`, description: "" });
+  let submissionId = $state(null);
+  let gradingStatus = $state("");
+  let grade = $state(null);
   let pollingInterval = null;
 
   const getExoInfo = async () => {
@@ -60,7 +62,7 @@
     }, 500);
   };
 
-  onMount(() => {
+  $effect(() => {
     getExoInfo();
   });
 </script>
@@ -68,13 +70,20 @@
 <h1>{exercise.title}</h1>
 <p>{exercise.description}</p>
 
-<textarea bind:value={answer}></textarea>
-<button onclick={submitExercise}>Submit</button>
+{#if userState.loading}
+  <p>Loading...</p>
+{:else if !userState.email}
+  <p>Login or register to complete exercises.</p>
+{:else}
 
-{#if gradingStatus}
-  <p>Grading status: {gradingStatus}</p>
-{/if}
+  <textarea bind:value={answer}></textarea>
+  <button onclick={submitExercise}>Submit</button>
 
-{#if grade !== null}
-  <p>Grade: {grade}</p>
+  {#if gradingStatus}
+    <p>Grading status: {gradingStatus}</p>
+  {/if}
+
+  {#if grade !== null}
+    <p>Grade: {grade}</p>
+  {/if}
 {/if}
