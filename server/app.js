@@ -29,7 +29,7 @@ app.use("*", async (c, next) => {
     return next();
   }
 
-  c.set("user", session.user.name);
+  c.set("user", session.user);
   return next();
 });
 app.use("/api/exercises/:id/submissions", (c, next) => {
@@ -105,14 +105,15 @@ app.post(
     try {
       const id = c.req.param("id");
       const body = await c.req.json();
+      const user = c.get("user");
 
       if (!body.source_code) {
         return c.json({ error: "source_code is required" }, 400);
       }
 
       const [submission] = await sql`
-        INSERT INTO exercise_submissions (exercise_id, source_code)
-        VALUES (${id}, ${body.source_code})
+        INSERT INTO exercise_submissions (exercise_id, source_code, user_id)
+        VALUES (${id}, ${body.source_code}, ${user.id})
         RETURNING id
       `;
 
@@ -146,9 +147,16 @@ app.get(
   "/api/submissions/:id/status",
   async function getStatus(c) {
     const submission = c.req.param("id");
+    const user = c.get("user");
+
     try {
+      const posting_id = await sql`SELECT user_id FROM exercise_submissions WHERE exercise_submissions.id = ${submission}`;
+
+      if (posting_id[0].user_id !== user.id) {
+        return c.text("", 404);
+      }
+
       const result = await sql`SELECT grading_status, grade FROM exercise_submissions WHERE exercise_submissions.id = ${submission}`;
-      
       if (result.length === 0) {
         return c.text("", 404);
       } else {
